@@ -46,7 +46,9 @@ while len(enlaces) < num_imgs:
     for img in imgs:
         src = img.get_attribute("src")
         if src and src.endswith(".jpg") and patron_img.search(src):
-            enlaces.add(src)
+            if src not in enlaces:  # solo contar si es nuevo
+                enlaces.add(src)
+                print(f"Progreso: {len(enlaces)}/{num_imgs} imágenes encontradas", end="\r")
         if len(enlaces) >= num_imgs:
             break
 
@@ -61,10 +63,10 @@ while len(enlaces) < num_imgs:
     last_height = new_height
 
 driver.quit()
-print(f"Enlaces encontrados: {len(enlaces)}")
+print(f"\nEnlaces encontrados: {len(enlaces)}")
 
 # ----- DESCARGAR IMAGENES -----
-print("Descargando imagenes...")
+print("Descargando imágenes...")
 cont_img = 0
 for i, url in enumerate(list(enlaces)[:num_imgs], 1):
     try:
@@ -82,4 +84,4 @@ for i, url in enumerate(list(enlaces)[:num_imgs], 1):
     except Exception as e:
         print(f"Error descargando imagen {i}: {e}")
 
-print(f"Descarga finalizada. Total de imagenes descargadas: {cont_img}")
+print(f"Descarga finalizada. Total de imágenes descargadas: {cont_img}")
