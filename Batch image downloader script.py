@@ -142,7 +142,7 @@ while True:
                 with open(directorio_salida, "wb") as f_val:
                     f_val.write(solicitud_val.content) 
                     
-                cont_img += 1 # Incrementar contador de éxitos
+                cont_img += 1 # Incrementar contador de imágenes
                 
                 # Mostrar progreso de descarga
                 print(f"{pos_val}: {nombre_imagen}")
@@ -150,4 +150,5 @@ while True:
             continue # Continuar con la siguiente imagen si hay error
     
     # Mostrar separador final
+
     print("-" * 36 + "\n")
