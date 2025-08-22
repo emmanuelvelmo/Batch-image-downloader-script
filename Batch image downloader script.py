@@ -13,7 +13,7 @@ while True:
     # Solicitar descripción de imagen y cantidad
     texto_buscar = input("Image description: ").strip('"\'')
     
-    num_imgs = 0
+    num_imgs = 0 # 
     
     # Solicitar lado mínimo de imagen
     while True:
@@ -25,7 +25,10 @@ while True:
             
             break
         else:
-            print("Wrong format\n")
+            print("Wrong format")
+    
+    # Mostrar separador visual para inicio de resultados
+    print("\n" + "-" * 36)
     
     # Crear carpeta de salida
     if not os.path.exists(texto_buscar):
@@ -48,7 +51,8 @@ while True:
     
     # Suprimir logs adicionales del servicio
     service_val = Service()
-    service_val.creation_flags = 0x08000000  # CREATE_NO_WINDOW en Windows
+    
+    service_val.creation_flags = 0x08000000 # CREATE_NO_WINDOW en Windows
     
     # Inicializar el driver de Chrome
     driver_val = selenium.webdriver.Chrome(service = service_val, options = opciones_chrome)
@@ -63,9 +67,6 @@ while True:
     # Navegar a la página de búsqueda
     driver_val.get(url_busqueda)
     
-    # Mensaje de progreso
-    print("Cargando Pinterest y haciendo scroll...")
-    
     # Extraer enlaces de imágenes en página cargada
     enlaces_val = set() # Usar set para evitar duplicados
     
@@ -75,24 +76,28 @@ while True:
     
     patron_img = re.compile(r"/(\d{3,})x/") # busca carpetas con formato mayor a 200 seguido x
     
+    # Contador de intentos
+    scroll_attempts = 0
+    max_scroll_attempts = 3 # Máximo de intentos sin encontrar nuevo contenido
+    
     # Buscar imágenes haciendo scroll hasta encontrar la cantidad deseada
-    while len(enlaces_val) < num_imgs:
+    while len(enlaces_val) < num_imgs and scroll_attempts < max_scroll_attempts:
         # Encontrar todas las imágenes en la página actual
-        imgs = driver_val.find_elements(By.TAG_NAME, "img")
+        imgs_val = driver_val.find_elements(By.TAG_NAME, "img")
         
         # Procesar cada imagen encontrada
-        for img in imgs:
-            src = img.get_attribute("src") # Obtener URL de la imagen
+        for iter_img in imgs_val:
+            src_val = iter_img.get_attribute("src") # Obtener URL de la imagen
             
-            # Filtrar solo imágenes JPG de alta resolución
-            if src and src.endswith(".jpg") and patron_img.search(src):
-                # solo contar si es nuevo
-                if src not in enlaces_val:
-                    enlaces_val.add(src) # Agregar al conjunto de enlaces
-                    
-                    # Mostrar progreso
-                    print(f"Progreso: {len(enlaces_val)}/{num_imgs} imágenes encontradas", end="\r")
+            # Filtrar solo imágenes
+            if src_val and any(src_val.lower().endswith(ext_val) for ext_val in ('.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.svg')) and patron_img.search(src_val):                # solo contar si es nuevo
+                    if src_val not in enlaces_val:
+                        enlaces_val.add(src_val) # Agregar al conjunto de enlaces
+                        
+                        # Mostrar progreso
+                        print(f"Progress: {len(enlaces_val)}/{num_imgs}", end = "\r")
             
+            # Se llega al número de imágenes solicitadas
             if len(enlaces_val) >= num_imgs:
                 break
         
@@ -104,9 +109,12 @@ while True:
         # Revisar si llegamos al final
         new_height = driver_val.execute_script("return document.body.scrollHeight") # Nueva altura después del scroll
         
-        # Si la altura no cambió, hemos llegado al final
+        # Si la altura no cambió, incrementar el contador de intentos
         if new_height == last_height:
-            break
+            scroll_attempts += 1
+            print(f"Intento {scroll_attempts}/{max_scroll_attempts} sin nuevo contenido")
+        else:
+            scroll_attempts = 0  # Reiniciar contador si hay nuevo contenido
         
         # Actualizar altura anterior
         last_height = new_height
@@ -114,13 +122,9 @@ while True:
     # Cerrar el navegador
     driver_val.quit()
     
-    # Mostrar cantidad de enlaces encontrados
-    print(f"\nEnlaces encontrados: {len(enlaces_val)}")
+    print("\n") # Salto doble de línea
     
     # Descargar imágenes
-    # Mensaje de inicio de descarga
-    print("Descargando imágenes...")
-    
     cont_img = 0 # Contador de imágenes descargadas exitosamente
     
     # Iterar sobre los enlaces y descargar cada imagen
@@ -142,8 +146,9 @@ while True:
                 cont_img += 1 # Incrementar contador de éxitos
                 
                 # Mostrar progreso de descarga
-                print(f"Imagen {iter_val} descargada como {nombre_archivo_original}")
+                print(f"{iter_val}: {nombre_archivo_original}")
         except Exception as e:
             continue # Continuar con la siguiente imagen si hay error
     
-    print(f"Descarga finalizada. Total de imágenes descargadas: {cont_img}\n")
+    # Mostrar separador final
+    print("-" * 36 + "\n")
