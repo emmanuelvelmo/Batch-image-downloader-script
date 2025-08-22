@@ -126,12 +126,6 @@ while True:
     # Descargar imágenes
     cont_img = 0 # Contador de imágenes descargadas exitosamente
    
-   
-   
-   
-   
-   
-    
     # Iterar sobre los enlaces y descargar cada imagen
     for pos_val, url_iter in enumerate(list(enlaces_val)[:num_imgs], 1):
         try:
