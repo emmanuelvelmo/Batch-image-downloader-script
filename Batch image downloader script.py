@@ -28,7 +28,7 @@ while True:
             print("Wrong format")
     
     # Mostrar separador visual para inicio de resultados
-    print("\n" + "-" * 36)
+    print("\n" + "-" * 36 + "\n" + "Progress: 0/0", end = "\r")
     
     # Crear carpeta de salida
     if not os.path.exists(texto_buscar):
