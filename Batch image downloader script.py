@@ -33,13 +33,25 @@ while True:
     
     # Configuración de Selenium
     opciones_chrome = Options()
+    
     opciones_chrome.add_argument("--headless") # corre sin ventana
     opciones_chrome.add_argument("--disable-gpu") # Desactiva la aceleración GPU
     opciones_chrome.add_argument("--log-level=3") # Reduce mensajes de log
     opciones_chrome.add_argument("--window-size=1280,720") # Define tamaño de ventana
+    opciones_chrome.add_argument("--no-sandbox") # Mejora compatibilidad
+    opciones_chrome.add_argument("--disable-dev-shm-usage") # Evita problemas de memoria
+    opciones_chrome.add_argument("--disable-extensions") # Desactiva extensiones
+    opciones_chrome.add_argument("--disable-logging") # Desactiva logging adicional
+    opciones_chrome.add_argument("--silent") # Modo silencioso
+    opciones_chrome.add_argument("--disable-web-security") # Desactiva seguridad web
+    opciones_chrome.add_argument("--remote-debugging-port=0") # Desactiva puerto de depuración remota
+    
+    # Suprimir logs adicionales del servicio
+    service_val = Service()
+    service_val.creation_flags = 0x08000000  # CREATE_NO_WINDOW en Windows
     
     # Inicializar el driver de Chrome
-    driver_val = selenium.webdriver.Chrome(service = Service(), options = opciones_chrome)
+    driver_val = selenium.webdriver.Chrome(service = service_val, options = opciones_chrome)
     
     # Generar URL de búsqueda
     # Codificar el texto para URL
