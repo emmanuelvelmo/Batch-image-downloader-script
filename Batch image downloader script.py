@@ -50,12 +50,12 @@ while True:
     opciones_chrome.add_argument("--remote-debugging-port=0") # Desactiva puerto de depuración remota
     
     # Suprimir logs adicionales del servicio
-    service_val = Service()
+    servicio_val = Service()
     
-    service_val.creation_flags = 0x08000000 # CREATE_NO_WINDOW en Windows
+    servicio_val.creation_flags = 0x08000000 # CREATE_NO_WINDOW en Windows
     
     # Inicializar el driver de Chrome
-    driver_val = selenium.webdriver.Chrome(service = service_val, options = opciones_chrome)
+    drivesolicitud_val = selenium.webdriver.Chrome(service = servicio_val, options = opciones_chrome)
     
     # Generar URL de búsqueda
     # Codificar el texto para URL
@@ -65,25 +65,25 @@ while True:
     url_busqueda = f"https://www.pinterest.com/search/pins/?q={texto_codificado}&rs=typed"
     
     # Navegar a la página de búsqueda
-    driver_val.get(url_busqueda)
+    drivesolicitud_val.get(url_busqueda)
     
     # Extraer enlaces de imágenes en página cargada
     enlaces_val = set() # Usar set para evitar duplicados
     
-    scroll_pause = 2 # Tiempo de pausa entre scrolls
+    pausa_scroll = 2 # Tiempo de pausa entre scrolls
     
-    last_height = driver_val.execute_script("return document.body.scrollHeight") # Obtener altura inicial de la página
+    altura_anterior = drivesolicitud_val.execute_script("return document.body.scrollHeight") # Obtener altura inicial de la página
     
     patron_img = re.compile(r"/(\d{3,})x/") # busca carpetas con formato mayor a 200 seguido x
     
     # Contador de intentos
-    scroll_attempts = 0
-    max_scroll_attempts = 3 # Máximo de intentos sin encontrar nuevo contenido
+    intentos_scroll = 0
+    maximo_intentos = 3 # Máximo de intentos sin encontrar nuevo contenido
     
     # Buscar imágenes haciendo scroll hasta encontrar la cantidad deseada
-    while len(enlaces_val) < num_imgs and scroll_attempts < max_scroll_attempts:
+    while len(enlaces_val) < num_imgs and intentos_scroll < maximo_intentos:
         # Encontrar todas las imágenes en la página actual
-        imgs_val = driver_val.find_elements(By.TAG_NAME, "img")
+        imgs_val = drivesolicitud_val.find_elements(By.TAG_NAME, "img")
         
         # Procesar cada imagen encontrada
         for iter_img in imgs_val:
@@ -102,51 +102,56 @@ while True:
                 break
         
         # Hacer scroll hacia abajo
-        driver_val.execute_script("window.scrollTo(0, document.body.scrollHeight);") # Scroll al final de la página
+        drivesolicitud_val.execute_script("window.scrollTo(0, document.body.scrollHeight);") # Scroll al final de la página
         
-        time.sleep(scroll_pause) # Pausa para cargar contenido
+        time.sleep(pausa_scroll) # Pausa para cargar contenido
         
         # Revisar si llegamos al final
-        new_height = driver_val.execute_script("return document.body.scrollHeight") # Nueva altura después del scroll
+        nueva_altura = drivesolicitud_val.execute_script("return document.body.scrollHeight") # Nueva altura después del scroll
         
         # Si la altura no cambió, incrementar el contador de intentos
-        if new_height == last_height:
-            scroll_attempts += 1
-            print(f"Intento {scroll_attempts}/{max_scroll_attempts} sin nuevo contenido")
+        if nueva_altura == altura_anterior:
+            intentos_scroll += 1
         else:
-            scroll_attempts = 0  # Reiniciar contador si hay nuevo contenido
+            intentos_scroll = 0 # Reiniciar contador si hay nuevo contenido
         
         # Actualizar altura anterior
-        last_height = new_height
+        altura_anterior = nueva_altura
     
     # Cerrar el navegador
-    driver_val.quit()
+    drivesolicitud_val.quit()
     
     print("\n") # Salto doble de línea
     
     # Descargar imágenes
     cont_img = 0 # Contador de imágenes descargadas exitosamente
+   
+   
+   
+   
+   
+   
     
     # Iterar sobre los enlaces y descargar cada imagen
-    for iter_val, url_val in enumerate(list(enlaces_val)[:num_imgs], 1):
+    for pos_val, url_iter in enumerate(list(enlaces_val)[:num_imgs], 1):
         try:
-            r_val = requests.get(url_val, timeout = 10) # Realizar petición HTTP con timeout
+            solicitud_val = requests.get(url_iter, timeout = 10) # Realizar petición HTTP con timeout
             
             # Verificar si la descarga fue exitosa
-            if r_val.status_code == 200:
+            if solicitud_val.status_code == 200:
                 # Extraer el nombre original de la URL
-                nombre_archivo_original = os.path.basename(urllib.parse.urlparse(url_val).path)
-                
-                ruta_archivo = os.path.join(texto_buscar, nombre_archivo_original)
+                nombre_imagen = os.path.basename(urllib.parse.urlparse(url_iter).path)
+
+                directorio_salida = os.path.join(texto_buscar, nombre_imagen)
                 
                 # Guardar imagen
-                with open(ruta_archivo, "wb") as f_val:
-                    f_val.write(r_val.content) 
+                with open(directorio_salida, "wb") as f_val:
+                    f_val.write(solicitud_val.content) 
                     
                 cont_img += 1 # Incrementar contador de éxitos
                 
                 # Mostrar progreso de descarga
-                print(f"{iter_val}: {nombre_archivo_original}")
+                print(f"{pos_val}: {nombre_imagen}")
         except Exception as e:
             continue # Continuar con la siguiente imagen si hay error
     
